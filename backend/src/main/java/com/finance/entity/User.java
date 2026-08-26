@@ -32,6 +32,10 @@ public class User {
     @Column(length = 20)
     private String phone;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String avatar;
+
     @Column(nullable = false)
     private Integer status = 1;
 

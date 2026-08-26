@@ -96,147 +96,108 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-5 animate-fade-up">
-    <!-- 顶部说明 -->
-    <div class="rounded-2xl bg-brand-gradient p-6 text-white shadow-glow">
-      <h3 class="text-lg font-bold">🏷️ 消费板块管理</h3>
-      <p class="mt-1 text-sm text-white/80">自定义你的消费分类，让记账更贴合你的生活</p>
-    </div>
-
-    <!-- Tab 切换 -->
-    <div class="inline-flex rounded-xl bg-slate-100 p-1 dark:bg-white/5">
-      <button
-        @click="activeTab = 'EXPENSE'"
-        :class="activeTab === 'EXPENSE' ? 'bg-expense-gradient text-white shadow-glow-expense' : 'text-slate-600 dark:text-slate-300'"
-        class="rounded-lg px-5 py-2 text-sm font-medium transition-all"
-      >
-        支出板块
-      </button>
-      <button
-        @click="activeTab = 'INCOME'"
-        :class="activeTab === 'INCOME' ? 'bg-income-gradient text-white shadow-glow-income' : 'text-slate-600 dark:text-slate-300'"
-        class="rounded-lg px-5 py-2 text-sm font-medium transition-all"
-      >
-        收入板块
-      </button>
-    </div>
-
-    <!-- 分类网格 -->
-    <div class="card">
-      <div class="mb-5 flex items-center justify-between">
-        <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-          {{ activeTab === 'EXPENSE' ? '支出' : '收入' }}板块（{{ filteredCategories().length }} 个）
-        </h3>
-        <button @click="openCreate" class="btn-primary">+ 新增板块</button>
+  <div class="space-y-6 animate-fade-up">
+    <section class="flex flex-col gap-5 border-b border-stone-200/80 pb-6 dark:border-white/10 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700 dark:text-emerald-400">Classification</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-stone-950 dark:text-white sm:text-3xl">分类管理</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">维护统一的收支分类、识别图标与展示顺序，让财务数据更容易归纳和分析。</p>
       </div>
+      <button @click="openCreate" class="btn-primary w-full sm:w-auto">新增分类</button>
+    </section>
 
-      <div v-if="loading" class="py-16 text-center text-slate-400">加载中...</div>
-      <div v-else-if="filteredCategories().length === 0" class="py-16 text-center text-slate-400">
-        还没有分类，点击「新增板块」添加
+    <section class="card p-2">
+      <div class="grid grid-cols-2 gap-1" role="tablist" aria-label="分类类型">
+        <button @click="activeTab = 'EXPENSE'" :class="activeTab === 'EXPENSE' ? 'bg-white text-red-700 shadow-sm ring-1 ring-stone-200 dark:bg-stone-800 dark:text-red-300 dark:ring-white/10' : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'" class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors">
+          支出分类
+          <span class="ml-1.5 text-xs font-normal opacity-70">{{ categories.filter(c => c.type === 'EXPENSE').length }}</span>
+        </button>
+        <button @click="activeTab = 'INCOME'" :class="activeTab === 'INCOME' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-stone-200 dark:bg-stone-800 dark:text-emerald-300 dark:ring-white/10' : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'" class="rounded-xl px-4 py-3 text-sm font-semibold transition-colors">
+          收入分类
+          <span class="ml-1.5 text-xs font-normal opacity-70">{{ categories.filter(c => c.type === 'INCOME').length }}</span>
+        </button>
       </div>
-      <div v-else class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        <div
-          v-for="c in filteredCategories()"
-          :key="c.id"
-          class="group relative card-hover rounded-2xl border border-slate-100 bg-white/70 p-4 dark:border-white/5 dark:bg-white/5"
-        >
-          <div class="mb-3 flex items-center gap-3">
-            <span
-              :style="{ backgroundColor: c.color + '20' }"
-              class="flex h-10 w-10 items-center justify-center rounded-full text-xl"
-            >
-              {{ c.icon }}
-            </span>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{{ c.name }}</p>
-              <p class="text-xs text-slate-400">排序 {{ c.sortOrder }}</p>
+    </section>
+
+    <section class="card">
+      <header class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-stone-900 dark:text-stone-100">{{ activeTab === 'EXPENSE' ? '支出' : '收入' }}分类目录</h2>
+          <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">共 {{ filteredCategories().length }} 个分类，排序数字越小越靠前</p>
+        </div>
+        <button @click="openCreate" class="btn-secondary w-full sm:w-auto">新增{{ activeTab === 'EXPENSE' ? '支出' : '收入' }}分类</button>
+      </header>
+
+      <div v-if="loading" class="py-20 text-center text-sm text-stone-500 dark:text-stone-400">正在加载分类...</div>
+      <div v-else-if="filteredCategories().length === 0" class="rounded-xl border border-dashed border-stone-300 px-6 py-20 text-center dark:border-white/15">
+        <p class="text-sm font-medium text-stone-700 dark:text-stone-300">当前类型暂无分类</p>
+        <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">新建分类后，可用于记账与预算管理。</p>
+      </div>
+      <div v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <article v-for="c in filteredCategories()" :key="c.id" class="group flex min-h-[108px] flex-col justify-between rounded-xl border border-stone-200 bg-white p-4 transition-colors hover:border-stone-300 dark:border-white/10 dark:bg-white/[0.025] dark:hover:border-white/20">
+          <div class="flex items-start gap-3">
+            <span :style="{ backgroundColor: c.color + '18', color: c.color }" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-current/10 text-xl">{{ c.icon }}</span>
+            <div class="min-w-0 flex-1 pt-0.5">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="truncate text-sm font-semibold text-stone-900 dark:text-stone-100">{{ c.name }}</h3>
+                <span :style="{ backgroundColor: c.color }" class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"></span>
+              </div>
+              <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">显示顺序 {{ c.sortOrder }}</p>
             </div>
           </div>
-          <div class="flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100">
-            <button @click="openEdit(c)" class="text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors">编辑</button>
-            <button @click="handleDelete(c.id)" class="btn-danger !px-3 !py-1">删除</button>
+          <div class="mt-4 flex items-center justify-end gap-1 border-t border-stone-100 pt-3 dark:border-white/[0.06] sm:opacity-60 sm:transition-opacity sm:group-hover:opacity-100">
+            <button @click="openEdit(c)" class="btn-ghost !px-3 !py-1.5">编辑</button>
+            <button @click="handleDelete(c.id)" class="btn-danger !px-3 !py-1.5">删除</button>
           </div>
-        </div>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <!-- 新增/编辑弹窗 -->
     <Teleport :to="modalRoot">
-      <div v-if="showModal" @click.self="showModal = false" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
-        <div class="card w-full max-w-md animate-scale-in max-h-[80vh] overflow-auto p-6">
-        <h3 class="mb-5 text-lg font-semibold text-slate-800 dark:text-white">
-          {{ editingId ? '编辑板块' : '新增板块' }}
-        </h3>
-        <div class="space-y-4">
-          <div>
-            <label class="label-base">名称</label>
-            <input
-              v-model="form.name"
-              type="text"
-              placeholder="如：餐饮、购物、工资"
-              class="input-base"
-            />
-          </div>
-          <div>
-            <label class="label-base">类型</label>
-            <div class="flex gap-2">
-              <button
-                @click="form.type = 'EXPENSE'"
-                :class="form.type === 'EXPENSE' ? 'bg-expense-gradient text-white shadow-glow-expense' : 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300'"
-                class="flex-1 rounded-xl py-2.5 text-sm font-medium transition-all"
-              >
-                支出
-              </button>
-              <button
-                @click="form.type = 'INCOME'"
-                :class="form.type === 'INCOME' ? 'bg-income-gradient text-white shadow-glow-income' : 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300'"
-                class="flex-1 rounded-xl py-2.5 text-sm font-medium transition-all"
-              >
-                收入
-              </button>
+      <div v-if="showModal" @click.self="showModal = false" class="fixed inset-0 z-[100] flex items-end justify-center bg-stone-950/55 sm:items-center sm:px-4">
+        <div class="w-full max-w-lg overflow-hidden rounded-t-2xl border border-stone-200 bg-white shadow-2xl dark:border-white/10 dark:bg-stone-900 sm:max-h-[90vh] sm:rounded-2xl">
+          <header class="flex items-start justify-between border-b border-stone-200/80 px-5 py-5 dark:border-white/10 sm:px-6">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-400">Category</p>
+              <h3 class="mt-1 text-xl font-semibold text-stone-950 dark:text-white">{{ editingId ? '编辑分类' : '新增分类' }}</h3>
             </div>
-          </div>
-          <div>
-            <label class="label-base">图标</label>
-            <div class="grid grid-cols-8 gap-2">
-              <button
-                v-for="icon in icons"
-                :key="icon"
-                @click="form.icon = icon"
-                :class="form.icon === icon ? 'bg-brand-gradient text-white shadow-glow' : 'bg-slate-50 text-slate-600 dark:bg-white/5 dark:text-slate-300'"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-lg transition-all hover:scale-110"
-              >
-                {{ icon }}
-              </button>
+            <button @click="showModal = false" class="btn-ghost !h-9 !w-9 !p-0" aria-label="关闭弹窗">×</button>
+          </header>
+          <div class="max-h-[calc(100vh-11rem)] space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+            <label class="block">
+              <span class="label-base">分类名称</span>
+              <input v-model="form.name" type="text" placeholder="如：餐饮、交通、工资" class="input-base" />
+            </label>
+            <div>
+              <label class="label-base">收支类型</label>
+              <div class="grid grid-cols-2 rounded-xl bg-stone-100 p-1 dark:bg-white/[0.05]">
+                <button @click="form.type = 'EXPENSE'" :class="form.type === 'EXPENSE' ? 'bg-white text-red-700 shadow-sm ring-1 ring-stone-200 dark:bg-stone-800 dark:text-red-300 dark:ring-white/10' : 'text-stone-500 dark:text-stone-400'" class="rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors">支出</button>
+                <button @click="form.type = 'INCOME'" :class="form.type === 'INCOME' ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-stone-200 dark:bg-stone-800 dark:text-emerald-300 dark:ring-white/10' : 'text-stone-500 dark:text-stone-400'" class="rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors">收入</button>
+              </div>
             </div>
-          </div>
-          <div>
-            <label class="label-base">颜色</label>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="color in colors"
-                :key="color"
-                @click="form.color = color"
-                :class="form.color === color ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-slate-500' : ''"
-                :style="{ backgroundColor: color }"
-                class="h-8 w-8 rounded-full transition-all hover:scale-110"
-              ></button>
+            <div>
+              <label class="label-base">识别图标</label>
+              <div class="grid grid-cols-6 gap-2 rounded-xl border border-stone-200 bg-stone-50 p-3 dark:border-white/10 dark:bg-white/[0.02] sm:grid-cols-8">
+                <button v-for="icon in icons" :key="icon" @click="form.icon = icon" :class="form.icon === icon ? 'border-emerald-700 bg-white shadow-sm ring-1 ring-emerald-700 dark:border-emerald-500 dark:bg-stone-800 dark:ring-emerald-500' : 'border-transparent hover:border-stone-300 hover:bg-white dark:hover:border-white/15 dark:hover:bg-white/[0.05]'" class="flex aspect-square items-center justify-center rounded-lg border text-lg transition-colors">{{ icon }}</button>
+              </div>
             </div>
+            <div>
+              <label class="label-base">标识颜色</label>
+              <div class="flex flex-wrap gap-2.5 rounded-xl border border-stone-200 bg-stone-50 p-3 dark:border-white/10 dark:bg-white/[0.02]">
+                <button v-for="color in colors" :key="color" @click="form.color = color" :class="form.color === color ? 'ring-2 ring-stone-900 ring-offset-2 dark:ring-white dark:ring-offset-stone-900' : ''" :style="{ backgroundColor: color }" class="h-8 w-8 rounded-lg border border-black/5 transition-transform hover:scale-105" :aria-label="`选择颜色 ${color}`"></button>
+              </div>
+            </div>
+            <label class="block">
+              <span class="label-base">显示顺序</span>
+              <input v-model.number="form.sortOrder" type="number" class="input-base tabular" />
+              <span class="mt-1.5 block text-xs text-stone-500 dark:text-stone-400">数字越小，在分类选择器中越靠前。</span>
+            </label>
           </div>
-          <div>
-            <label class="label-base">排序（数字越小越靠前）</label>
-            <input
-              v-model.number="form.sortOrder"
-              type="number"
-              class="input-base tabular"
-            />
-          </div>
+          <footer class="flex gap-3 border-t border-stone-200/80 px-5 py-4 dark:border-white/10 sm:justify-end sm:px-6">
+            <button @click="showModal = false" class="btn-secondary flex-1 sm:flex-none">取消</button>
+            <button @click="handleSave" class="btn-primary flex-1 sm:flex-none">保存分类</button>
+          </footer>
         </div>
-        <div class="mt-6 flex gap-3">
-          <button @click="showModal = false" class="btn-ghost flex-1">取消</button>
-          <button @click="handleSave" class="btn-primary flex-1">保存</button>
-        </div>
-      </div>
       </div>
     </Teleport>
   </div>

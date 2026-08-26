@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
+    avatar LONGTEXT,
     status INT DEFAULT 1,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL

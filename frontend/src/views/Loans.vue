@@ -91,39 +91,107 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-5 animate-fade-up">
-    <div class="flex items-center justify-between">
-      <div><h2 class="text-2xl font-bold text-slate-800 dark:text-white">贷款管理</h2><p class="mt-1 text-sm text-slate-400">统一管理借款与每期还款进度</p></div>
-      <button class="btn-primary" @click="openCreate">+ 新增贷款</button>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <div class="card"><p class="text-xs text-slate-400">总借款</p><p class="mt-2 tabular text-xl font-bold text-slate-800 dark:text-white">{{ money(overview.totalBorrowed) }}</p></div>
-      <div class="card"><p class="text-xs text-slate-400">剩余本金</p><p class="mt-2 tabular text-xl font-bold text-primary-500">{{ money(overview.remainingPrincipal) }}</p></div>
-      <div class="card"><p class="text-xs text-slate-400">已还利息</p><p class="mt-2 tabular text-xl font-bold text-expense-500">{{ money(overview.paidInterest) }}</p></div>
-      <div class="card"><p class="text-xs text-slate-400">贷款数量</p><p class="mt-2 tabular text-xl font-bold text-slate-800 dark:text-white">{{ overview.loanCount }} <span class="text-xs font-normal text-slate-400">笔</span></p></div>
-    </div>
-
-    <div class="card">
-      <div class="mb-5 flex items-center justify-between"><h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">贷款列表</h3><span class="text-xs text-slate-400">{{ activeLoans.length }} 笔进行中</span></div>
-      <div v-if="loading" class="py-12 text-center text-slate-400">加载中...</div>
-      <div v-else-if="loans.length === 0" class="py-12 text-center text-slate-400">暂无贷款，点击右上角添加</div>
-      <div v-else class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div v-for="loan in loans" :key="loan.id" class="card-hover rounded-2xl border border-slate-100 p-5 dark:border-white/5">
-          <div class="flex items-start justify-between gap-3"><div><h4 class="font-semibold text-slate-800 dark:text-white">{{ loan.name }}</h4><p class="mt-1 text-xs text-slate-400">{{ loan.lender }} · {{ typeLabel(loan.type) }}</p></div><span :class="loan.status === 'PAID' || loan.status === 'CLOSED' ? 'badge bg-slate-100 text-slate-500 dark:bg-white/10' : 'badge badge-income'">{{ loan.status === 'PAID' || loan.status === 'CLOSED' ? '已结清' : '还款中' }}</span></div>
-          <div class="mt-5 grid grid-cols-3 gap-3"><div><p class="text-xs text-slate-400">剩余本金</p><p class="mt-1 tabular text-base font-bold text-slate-800 dark:text-white">{{ money(loan.remainingPrincipal) }}</p></div><div><p class="text-xs text-slate-400">年利率</p><p class="mt-1 tabular text-base font-semibold text-slate-700 dark:text-slate-200">{{ Number(loan.annualRate || 0).toFixed(2) }}%</p></div><div><p class="text-xs text-slate-400">月供日</p><p class="mt-1 text-base font-semibold text-slate-700 dark:text-slate-200">每月 {{ loan.paymentDay }} 日</p></div></div>
-          <div class="mt-5"><div class="mb-1 flex justify-between text-xs text-slate-400"><span>还款进度</span><span>{{ Number(loan.progress || 0).toFixed(1) }}%</span></div><div class="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10"><div class="h-full rounded-full bg-brand-gradient transition-all" :style="{ width: `${Math.min(100, Math.max(0, Number(loan.progress || 0)))}%` }"></div></div></div>
-          <div class="mt-5 flex items-center justify-between"><button class="text-xs font-medium text-primary-500 hover:text-primary-600" @click="openPayments(loan)">登记还款</button><div class="flex gap-3"><button class="text-xs font-medium text-slate-500 hover:text-primary-500" @click="openEdit(loan)">编辑</button><button class="btn-danger !px-3 !py-1" @click="deleteLoan(loan.id)">删除</button></div></div>
-        </div>
+  <div class="space-y-6 animate-fade-up">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">贷款管理</h2>
+        <p class="page-description">统一管理借款本金、利息与每期还款进度</p>
       </div>
+      <button class="btn-primary w-full sm:w-auto" @click="openCreate">新增贷款</button>
     </div>
+
+    <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div class="card !p-4 sm:!p-5"><p class="metric-label">总借款</p><p class="mt-3 tabular text-lg font-semibold tracking-tight text-ink-900 sm:text-2xl dark:text-white">{{ money(overview.totalBorrowed) }}</p></div>
+      <div class="card !p-4 sm:!p-5"><p class="metric-label">剩余本金</p><p class="mt-3 tabular text-lg font-semibold tracking-tight text-primary-700 sm:text-2xl dark:text-primary-300">{{ money(overview.remainingPrincipal) }}</p></div>
+      <div class="card !p-4 sm:!p-5"><p class="metric-label">已付利息</p><p class="mt-3 tabular text-lg font-semibold tracking-tight text-expense-600 sm:text-2xl dark:text-expense-300">{{ money(overview.paidInterest) }}</p></div>
+      <div class="card !p-4 sm:!p-5"><p class="metric-label">贷款数量</p><p class="mt-3 tabular text-lg font-semibold tracking-tight text-ink-900 sm:text-2xl dark:text-white">{{ overview.loanCount }} <span class="text-xs font-normal text-slate-500">笔</span></p></div>
+    </section>
+
+    <section class="card !p-0">
+      <div class="flex items-center justify-between border-b border-[#e4e5e1] px-5 py-4 sm:px-6 dark:border-white/[0.06]">
+        <h3 class="section-title">贷款明细</h3>
+        <span class="text-xs text-slate-500 dark:text-slate-400">{{ activeLoans.length }} 笔进行中</span>
+      </div>
+      <div v-if="loading" class="py-14 text-center text-sm text-slate-500">加载中...</div>
+      <div v-else-if="loans.length === 0" class="px-5 py-14 text-center"><p class="text-sm font-medium text-ink-800 dark:text-slate-200">暂无贷款</p><p class="mt-1 text-xs text-slate-500">新增贷款后可持续登记还款记录</p><button class="btn-secondary mt-5" @click="openCreate">新增贷款</button></div>
+      <div v-else class="divide-y divide-[#e4e5e1] dark:divide-white/[0.06]">
+        <article v-for="loan in loans" :key="loan.id" class="p-5 transition-colors hover:bg-[#fafaf8] sm:p-6 dark:hover:bg-white/[0.02]">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h4 class="font-semibold text-ink-900 dark:text-white">{{ loan.name }}</h4>
+                <span :class="loan.status === 'PAID' || loan.status === 'CLOSED' ? 'badge bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300' : 'badge badge-income'">{{ loan.status === 'PAID' || loan.status === 'CLOSED' ? '已结清' : '还款中' }}</span>
+              </div>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ loan.lender }} · {{ typeLabel(loan.type) }}</p>
+            </div>
+            <div class="flex w-full items-center gap-2 sm:w-auto">
+              <button class="btn-secondary flex-1 !px-3 !py-2 !text-xs sm:flex-none" @click="openPayments(loan)">登记还款</button>
+              <button class="rounded-lg px-3 py-2 text-xs font-medium text-slate-600 hover:bg-primary-50 hover:text-primary-700 dark:text-slate-300 dark:hover:bg-white/5" @click="openEdit(loan)">编辑</button>
+              <button class="btn-danger !rounded-lg !px-3 !py-2 !text-xs" @click="deleteLoan(loan.id)">删除</button>
+            </div>
+          </div>
+          <div class="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
+            <div><p class="metric-label">剩余本金</p><p class="mt-1.5 tabular text-base font-semibold text-ink-900 dark:text-white">{{ money(loan.remainingPrincipal) }}</p></div>
+            <div><p class="metric-label">年利率</p><p class="mt-1.5 tabular text-base font-semibold text-ink-800 dark:text-slate-200">{{ Number(loan.annualRate || 0).toFixed(2) }}%</p></div>
+            <div><p class="metric-label">月供金额</p><p class="mt-1.5 tabular text-base font-semibold text-ink-800 dark:text-slate-200">{{ money(loan.monthlyPayment) }}</p></div>
+            <div><p class="metric-label">月供日</p><p class="mt-1.5 text-base font-semibold text-ink-800 dark:text-slate-200">每月 {{ loan.paymentDay }} 日</p></div>
+          </div>
+          <div class="mt-5">
+            <div class="mb-2 flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>还款进度</span><span class="tabular font-medium text-ink-800 dark:text-slate-200">{{ Number(loan.progress || 0).toFixed(1) }}%</span></div>
+            <div class="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10"><div class="h-full rounded-full bg-primary-600 transition-all" :style="{ width: `${Math.min(100, Math.max(0, Number(loan.progress || 0)))}%` }"></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
 
     <Teleport :to="modalRoot">
-      <div v-if="showLoanModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm" @click.self="showLoanModal = false"><div class="card max-h-[80vh] w-full max-w-xl animate-scale-in overflow-auto p-6"><h3 class="mb-5 text-lg font-semibold text-slate-800 dark:text-white">{{ editingId ? '编辑贷款' : '新增贷款' }}</h3><div class="grid grid-cols-1 gap-4 sm:grid-cols-2"><div><label class="label-base">贷款名称</label><input v-model="form.name" class="input-base" placeholder="如：招商银行房贷" /></div><div><label class="label-base">出借方</label><input v-model="form.lender" class="input-base" placeholder="银行或机构名称" /></div><div><label class="label-base">贷款类型</label><select v-model="form.type" class="input-base"><option v-for="item in loanTypes" :key="item.value" :value="item.value">{{ item.label }}</option></select></div><div><label class="label-base">本金</label><input v-model="form.principal" type="number" min="0" step="0.01" class="input-base" /></div><div><label class="label-base">年利率（%）</label><input v-model="form.annualRate" type="number" min="0" step="0.01" class="input-base" /></div><div><label class="label-base">期限（月）</label><input v-model="form.termMonths" type="number" min="0" class="input-base" /></div><div><label class="label-base">月供金额</label><input v-model="form.monthlyPayment" type="number" min="0" step="0.01" class="input-base" /></div><div><label class="label-base">起始日期</label><input v-model="form.startDate" type="date" class="input-base" /></div><div><label class="label-base">还款日</label><input v-model="form.paymentDay" type="number" min="1" max="31" class="input-base" /></div><div class="sm:col-span-2"><label class="label-base">备注</label><input v-model="form.remark" class="input-base" placeholder="选填" /></div></div><div class="mt-6 flex gap-3"><button class="btn-ghost flex-1" @click="showLoanModal = false">取消</button><button class="btn-primary flex-1" @click="saveLoan">保存</button></div></div></div>
+      <div v-if="showLoanModal" class="fixed inset-0 z-[100] flex items-end justify-center bg-ink-950/45 sm:items-center sm:px-4 sm:py-8" @click.self="showLoanModal = false">
+        <div class="card max-h-[92vh] w-full max-w-2xl animate-scale-in overflow-auto !rounded-b-none !p-0 sm:!rounded-2xl">
+          <div class="flex items-center justify-between border-b border-[#e4e5e1] px-5 py-4 sm:px-6 dark:border-white/[0.06]"><div><h3 class="text-lg font-semibold text-ink-900 dark:text-white">{{ editingId ? '编辑贷款' : '新增贷款' }}</h3><p class="mt-0.5 text-xs text-slate-500">维护贷款合同与还款计划</p></div><button class="rounded-lg px-2 py-1 text-lg leading-none text-slate-400 hover:bg-slate-100 hover:text-ink-900 dark:hover:bg-white/5" aria-label="关闭" @click="showLoanModal = false">×</button></div>
+          <div class="grid grid-cols-1 gap-4 px-5 py-5 sm:grid-cols-2 sm:px-6">
+            <div><label class="label-base">贷款名称</label><input v-model="form.name" class="input-base" placeholder="如：招商银行房贷" /></div>
+            <div><label class="label-base">出借方</label><input v-model="form.lender" class="input-base" placeholder="银行或机构名称" /></div>
+            <div><label class="label-base">贷款类型</label><select v-model="form.type" class="input-base"><option v-for="item in loanTypes" :key="item.value" :value="item.value">{{ item.label }}</option></select></div>
+            <div><label class="label-base">本金</label><input v-model="form.principal" type="number" min="0" step="0.01" class="input-base tabular" /></div>
+            <div><label class="label-base">年利率（%）</label><input v-model="form.annualRate" type="number" min="0" step="0.01" class="input-base tabular" /></div>
+            <div><label class="label-base">期限（月）</label><input v-model="form.termMonths" type="number" min="0" class="input-base tabular" /></div>
+            <div><label class="label-base">月供金额</label><input v-model="form.monthlyPayment" type="number" min="0" step="0.01" class="input-base tabular" /></div>
+            <div><label class="label-base">起始日期</label><input v-model="form.startDate" type="date" class="input-base" /></div>
+            <div><label class="label-base">还款日</label><input v-model="form.paymentDay" type="number" min="1" max="31" class="input-base tabular" /></div>
+            <div class="sm:col-span-2"><label class="label-base">备注</label><input v-model="form.remark" class="input-base" placeholder="选填" /></div>
+          </div>
+          <div class="flex gap-3 border-t border-[#e4e5e1] px-5 py-4 sm:px-6 dark:border-white/[0.06]"><button class="btn-ghost flex-1" @click="showLoanModal = false">取消</button><button class="btn-primary flex-1" @click="saveLoan">保存贷款</button></div>
+        </div>
+      </div>
     </Teleport>
 
     <Teleport :to="modalRoot">
-      <div v-if="showPaymentModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 px-4 py-6 backdrop-blur-sm" @click.self="showPaymentModal = false"><div class="card max-h-[80vh] w-full max-w-xl animate-scale-in overflow-auto p-6"><div class="flex items-center justify-between"><div><h3 class="text-lg font-semibold text-slate-800 dark:text-white">登记还款</h3><p class="mt-1 text-xs text-slate-400">{{ selectedLoan?.name }}</p></div><button class="text-slate-400 hover:text-slate-700" @click="showPaymentModal = false">×</button></div><div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2"><div><label class="label-base">还款金额</label><input v-model="paymentForm.amount" type="number" min="0" step="0.01" class="input-base" /></div><div><label class="label-base">还款日期</label><input v-model="paymentForm.paymentDate" type="date" class="input-base" /></div><div><label class="label-base">归还本金</label><input v-model="paymentForm.principalAmount" type="number" min="0" step="0.01" class="input-base" /></div><div><label class="label-base">支付利息</label><input v-model="paymentForm.interestAmount" type="number" min="0" step="0.01" class="input-base" /></div><div class="sm:col-span-2"><label class="label-base">备注</label><input v-model="paymentForm.note" class="input-base" placeholder="选填" /></div></div><button class="btn-primary mt-5 w-full" @click="savePayment">保存还款</button><div class="mt-6 border-t border-slate-100 pt-5 dark:border-white/10"><h4 class="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">还款记录</h4><div v-if="paymentLoading" class="py-4 text-center text-xs text-slate-400">加载中...</div><div v-else-if="payments.length === 0" class="py-4 text-center text-xs text-slate-400">暂无还款记录</div><div v-else class="space-y-2"><div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-white/5"><div><p class="text-sm font-medium text-slate-700 dark:text-slate-200">{{ payment.paymentDate }} · {{ money(payment.amount) }}</p><p class="mt-0.5 text-xs text-slate-400">本金 {{ money(payment.principalAmount) }} / 利息 {{ money(payment.interestAmount) }}</p></div><button class="text-xs text-expense-500 hover:text-expense-600" @click="deletePayment(payment)">删除</button></div></div></div></div></div>
+      <div v-if="showPaymentModal" class="fixed inset-0 z-[100] flex items-end justify-center bg-ink-950/45 sm:items-center sm:px-4 sm:py-8" @click.self="showPaymentModal = false">
+        <div class="card max-h-[92vh] w-full max-w-2xl animate-scale-in overflow-auto !rounded-b-none !p-0 sm:!rounded-2xl">
+          <div class="flex items-center justify-between border-b border-[#e4e5e1] px-5 py-4 sm:px-6 dark:border-white/[0.06]"><div><h3 class="text-lg font-semibold text-ink-900 dark:text-white">登记还款</h3><p class="mt-0.5 text-xs text-slate-500">{{ selectedLoan?.name }}</p></div><button class="rounded-lg px-2 py-1 text-lg leading-none text-slate-400 hover:bg-slate-100 hover:text-ink-900 dark:hover:bg-white/5" aria-label="关闭" @click="showPaymentModal = false">×</button></div>
+          <div class="px-5 py-5 sm:px-6">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div><label class="label-base">还款金额</label><input v-model="paymentForm.amount" type="number" min="0" step="0.01" class="input-base tabular" /></div>
+              <div><label class="label-base">还款日期</label><input v-model="paymentForm.paymentDate" type="date" class="input-base" /></div>
+              <div><label class="label-base">归还本金</label><input v-model="paymentForm.principalAmount" type="number" min="0" step="0.01" class="input-base tabular" /></div>
+              <div><label class="label-base">支付利息</label><input v-model="paymentForm.interestAmount" type="number" min="0" step="0.01" class="input-base tabular" /></div>
+              <div class="sm:col-span-2"><label class="label-base">备注</label><input v-model="paymentForm.note" class="input-base" placeholder="选填" /></div>
+            </div>
+            <button class="btn-primary mt-5 w-full" @click="savePayment">保存还款</button>
+            <div class="mt-6 border-t border-[#e4e5e1] pt-5 dark:border-white/[0.06]">
+              <div class="mb-3 flex items-center justify-between"><h4 class="section-title">还款记录</h4><span class="text-xs text-slate-500">{{ payments.length }} 条</span></div>
+              <div v-if="paymentLoading" class="py-6 text-center text-xs text-slate-500">加载中...</div>
+              <div v-else-if="payments.length === 0" class="rounded-xl border border-dashed border-[#d7d9d4] py-6 text-center text-xs text-slate-500 dark:border-white/10">暂无还款记录</div>
+              <div v-else class="divide-y divide-[#e4e5e1] rounded-xl border border-[#e4e5e1] dark:divide-white/[0.06] dark:border-white/[0.06]">
+                <div v-for="payment in payments" :key="payment.id" class="flex items-center justify-between gap-3 px-4 py-3">
+                  <div class="min-w-0"><p class="text-sm font-medium text-ink-800 dark:text-slate-200">{{ payment.paymentDate }} · <span class="tabular">{{ money(payment.amount) }}</span></p><p class="mt-1 text-xs text-slate-500">本金 {{ money(payment.principalAmount) }} / 利息 {{ money(payment.interestAmount) }}</p></div>
+                  <button class="btn-danger shrink-0 !rounded-lg !px-2.5 !py-1.5 !text-xs" @click="deletePayment(payment)">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </Teleport>
   </div>
 </template>

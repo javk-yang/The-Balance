@@ -2,6 +2,8 @@ package com.finance.controller;
 
 import com.finance.common.Result;
 import com.finance.dto.LoginRequest;
+import com.finance.dto.PasswordUpdateRequest;
+import com.finance.dto.ProfileUpdateRequest;
 import com.finance.dto.RegisterRequest;
 import com.finance.service.AuthService;
 import com.finance.service.CategoryService;
@@ -41,5 +43,21 @@ public class AuthController {
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
         return Result.success(authService.login(request));
+    }
+
+    @GetMapping("/profile")
+    public Result<Map<String, Object>> getProfile() {
+        return Result.success(authService.getProfile());
+    }
+
+    @PutMapping("/profile")
+    public Result<Map<String, Object>> updateProfile(@Valid @RequestBody ProfileUpdateRequest request) {
+        return Result.success(authService.updateProfile(request));
+    }
+
+    @PutMapping("/password")
+    public Result<Void> updatePassword(@Valid @RequestBody PasswordUpdateRequest request) {
+        authService.updatePassword(request);
+        return Result.success(null);
     }
 }

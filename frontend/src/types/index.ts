@@ -1,9 +1,11 @@
 // 全局类型定义
 
 export interface User {
-  id: number
+  userId: number
   username: string
   email: string
+  phone?: string | null
+  avatar?: string | null
   token: string
 }
 

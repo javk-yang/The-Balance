@@ -12,45 +12,44 @@ html {
   scroll-behavior: smooth;
 }
 
+:focus-visible {
+  outline: 2px solid #3b6a57;
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #10201a;
+  background: #bbd3c7;
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 全局背景：浅色柔和渐变 + 深色沉浸空间 */
 #app {
   min-height: 100vh;
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
-  background-color: #f6f7fb;
-  background-image:
-    radial-gradient(60rem 60rem at -10% -10%, rgba(99, 102, 241, 0.10), transparent 55%),
-    radial-gradient(50rem 50rem at 110% 0%, rgba(168, 85, 247, 0.08), transparent 50%);
+  @apply bg-[#f7f7f5] text-ink-900 antialiased;
   background-attachment: fixed;
 }
 
 .dark body {
-  @apply bg-ink-900 text-slate-200;
-  background-color: #070a12;
-  background-image:
-    radial-gradient(60rem 60rem at -5% -10%, rgba(99, 102, 241, 0.16), transparent 55%),
-    radial-gradient(55rem 55rem at 105% 5%, rgba(168, 85, 247, 0.12), transparent 50%),
-    radial-gradient(40rem 40rem at 50% 120%, rgba(16, 185, 129, 0.06), transparent 55%);
+  @apply bg-ink-950 text-slate-200;
   background-attachment: fixed;
 }
 
-/* 数字等宽，金额对齐更精致 */
+/* 数字等宽，金额对齐更专业 */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
 }
 
-/* 滚动条美化 */
+/* 滚动条 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -59,62 +58,86 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.45);
+  background: rgba(120, 128, 124, 0.35);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.7);
+  background: rgba(120, 128, 124, 0.6);
   background-clip: padding-box;
 }
 
 @layer components {
-  /* 玻璃卡片 */
-  .card {
-    @apply rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-soft backdrop-blur-xl
-           dark:border-white/5 dark:bg-ink-800/80;
+  /* 卡片：低饱和纸面，细边框，无重阴影 */
+  .card,
+  .glass-card {
+    @apply rounded-2xl border border-[#e4e5e1] bg-white p-6 shadow-soft
+           dark:border-white/[0.06] dark:bg-ink-850;
   }
   .card-hover {
     @apply transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft-lg;
   }
+  .page-header {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
+  }
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight text-ink-900 dark:text-white;
+  }
+  .page-description {
+    @apply mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400;
+  }
+  .section-title {
+    @apply text-sm font-semibold text-ink-900 dark:text-slate-200;
+  }
+  .metric-label {
+    @apply text-xs font-medium text-slate-500 dark:text-slate-400;
+  }
+  .metric-value {
+    @apply mt-2 tabular text-2xl font-semibold tracking-tight text-ink-900 dark:text-white;
+  }
 
-  /* 主按钮 */
+  /* 主按钮：深松绿实色 */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-2.5
-           text-sm font-semibold text-white shadow-glow transition-all duration-200
-           hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-primary-700 px-4 py-2.5
+           text-sm font-semibold text-white transition-all duration-200
+           hover:bg-primary-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
   }
   /* 次按钮 */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-[#e4e5e1] bg-white px-4 py-2.5
+           text-sm font-medium text-ink-800 transition-all duration-200 hover:border-primary-300 hover:text-primary-700
+           active:scale-[0.98] dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-primary-500/40 dark:hover:text-primary-300;
+  }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5
-           text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-slate-200
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#efefec] px-4 py-2.5
+           text-sm font-medium text-ink-800 transition-all duration-200 hover:bg-[#e7e7e3]
            active:scale-[0.98] dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10;
   }
   /* 危险按钮 */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-expense-500/10 px-3 py-1.5
-           text-sm font-medium text-expense-600 transition-all hover:bg-expense-500/20
-           dark:text-expense-400;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium text-expense-600
+           transition-all hover:bg-expense-500/10
+           dark:text-expense-300;
   }
 
   /* 输入框 */
   .input-base {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800
+    @apply w-full rounded-xl border border-[#e4e5e1] bg-white px-4 py-2.5 text-sm text-ink-900
            placeholder-slate-400 outline-none transition-all duration-200
-           focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15
+           focus:border-primary-600 focus:ring-2 focus:ring-primary-600/15
            dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:placeholder-slate-500;
   }
   .label-base {
-    @apply mb-1.5 block text-sm font-medium text-slate-600 dark:text-slate-400;
+    @apply mb-1.5 block text-sm font-medium text-ink-800 dark:text-slate-300;
   }
 
   /* 标签徽章 */
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium;
   }
   .badge-income {
-    @apply bg-income-500/10 text-income-600 dark:text-income-300;
+    @apply bg-income-500/10 text-income-700 dark:text-income-300;
   }
   .badge-expense {
     @apply bg-expense-500/10 text-expense-600 dark:text-expense-300;
@@ -124,13 +147,22 @@ body {
 /* 路由过渡 */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .page-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(6px);
 }
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
