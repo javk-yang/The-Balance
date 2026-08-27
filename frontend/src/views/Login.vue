@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const loading = ref(false)
@@ -22,7 +23,12 @@ const handleLogin = async () => {
   error.value = ''
   try {
     await authStore.login(form.username, form.password)
-    router.push('/dashboard')
+    const redirect = typeof route.query.redirect === 'string'
+      && route.query.redirect.startsWith('/')
+      && !route.query.redirect.startsWith('//')
+      ? route.query.redirect
+      : '/dashboard'
+    await router.replace(redirect)
   } catch (e: any) {
     error.value = e.message || '登录失败'
   } finally {

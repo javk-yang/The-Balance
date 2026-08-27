@@ -1,5 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { authApi } from '@/api/auth'
+
+let verifiedToken = ''
+
+const clearStoredSession = () => {
+  verifiedToken = ''
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+}
+
+// 首次进入业务页面时向后端校验 Token，避免伪造或过期 Token 绕过前端守卫
+const verifySession = async (token: string) => {
+  if (verifiedToken === token) return true
+
+  try {
+    await authApi.profile()
+    verifiedToken = token
+    return true
+  } catch {
+    clearStoredSession()
+    return false
+  }
+}
 
 const routes: RouteRecordRaw[] = [
   {
@@ -82,22 +105,26 @@ const router = createRouter({
   routes,
 })
 
-// 路由守卫 - 检查登录状态
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  if (to.meta.public) {
-    if (token && (to.name === 'Login' || to.name === 'Register')) {
-      next('/')
-    } else {
-      next()
+// 路由守卫 - 未登录或登录凭证无效时禁止访问业务页面
+router.beforeEach(async (to) => {
+  const token = localStorage.getItem('token') || ''
+  const isPublicRoute = to.meta.public === true
+
+  if (isPublicRoute) {
+    if (token && (await verifySession(token))) {
+      return { path: '/dashboard' }
     }
-  } else {
-    if (!token) {
-      next('/login')
-    } else {
-      next()
+    return true
+  }
+
+  if (!token || !(await verifySession(token))) {
+    return {
+      path: '/login',
+      query: to.fullPath === '/' ? undefined : { redirect: to.fullPath },
     }
   }
+
+  return true
 })
 
 export default router
