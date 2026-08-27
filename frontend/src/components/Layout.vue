@@ -35,8 +35,7 @@ const navItems = [
 
 onMounted(() => {
   authStore.init()
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  if (localStorage.getItem('theme') === 'dark') {
     darkMode.value = true
     document.documentElement.classList.add('dark')
   }

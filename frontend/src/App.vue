@@ -5,10 +5,9 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const darkMode = ref(false)
 
-// 跟随系统主题
+// 默认使用浅色主题，仅恢复用户主动保存的深色偏好
 onMounted(() => {
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  if (localStorage.getItem('theme') === 'dark') {
     darkMode.value = true
     document.documentElement.classList.add('dark')
   }
